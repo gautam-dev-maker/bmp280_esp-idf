@@ -123,6 +123,12 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# Study Group
+#
+CONFIG_SDA_PIN="SRA"
+# end of Study Group
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y

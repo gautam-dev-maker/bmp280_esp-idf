@@ -1,0 +1,10 @@
+menu "Study Group"
+	config SDA_PIN
+		string "name"
+		default "SRA"
+		help
+			It is to set sda pin
+endmenu
+
+
+
