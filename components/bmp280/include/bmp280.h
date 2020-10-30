@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "driver/i2c.h"
-//#include <logger.h>
+#include <logger.h>
 
 #define BMP280_ADDRESS_0  0x76   //when SD0 pin is low
 #define BMP280_ADDRESS_1  0x77   //when SD0 pin is high

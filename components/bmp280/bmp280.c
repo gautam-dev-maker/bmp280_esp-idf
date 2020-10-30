@@ -1,17 +1,14 @@
 #include "bmp280.h"
 
-//i2c_num=I2C_NUM_0
-//bmp280_t raw;
-
 esp_err_t bmp280_init_id(bmp280_t *dev,i2c_config_t i2c_config){
 
     esp_err_t ret=read_data(1,&dev->id,i2c_config,BMP280_REG_ID);
     if(ret!=ESP_OK){
-        //logE("Error-Reading","Sensor not found");
+        logE("Error-Reading","Sensor not found");
     }
 
     if(dev->id!=BMP280_CHIP_ID){
-        //logE("Chip-ID","Invalid Chip Id");
+        logE("Chip-ID","Invalid Chip Id");
     }
     return ret;
 }
@@ -31,7 +28,7 @@ esp_err_t bmp280_init_ctrl(bmp280_params_t* params,i2c_config_t i2c_config){
     uint8_t ctrl = (params->oversampling_temperature << 5) | (params->oversampling_pressure << 2) | (params->mode);
     esp_err_t ret=write_data8(i2c_config,&ctrl,1,(uint8_t*)BMP280_REG_CTRL);
     if(ret!=ESP_OK){
-        //logE("Control","Failed to control the sensor");
+        logE("Control","Failed to control the sensor");
     }
     return ret;
 }
@@ -63,9 +60,9 @@ esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,void* r
 esp_err_t bmp280_resetting(i2c_config_t i2c_config){
     uint8_t value=BMP280_RESET_VALUE;
     esp_err_t ret=write_data8(i2c_config,&value,1,(uint8_t*) BMP280_REG_RESET);
-    // if(ret!=ESP_OK){
-    //     //logE("Reset","Failed to reset sensor");
-    // }
+    if(ret!=ESP_OK){
+        logE("Reset","Failed to reset sensor");
+    }
     return ret;
 }
 
@@ -83,7 +80,7 @@ esp_err_t bmp280_init_calibration(i2c_port_t i2c_num,bmp280_t *dev,i2c_config_t 
     read_data16((uint16_t*)&dev->dig_P8,i2c_config, 0x9c);
     esp_err_t ret=read_data16((uint16_t*)&dev->dig_P9,i2c_config, 0x9e);
     if(ret!=ESP_OK){
-        //logE("Error Initialising","Not able to initialise the bmp280");
+        logE("Error Initialising","Not able to initialise the bmp280");
     }
     return ret;
 }
@@ -169,7 +166,7 @@ esp_err_t bmp280_read_fixed(bmp280_t *dev,int32_t *temperature,int32_t *pressure
     int32_t adc_pressure;
     int32_t adc_temp; 
     if(read_data(size,&data[0],i2c_config, 0xf7)!=ESP_OK){
-        //logE("Error","Not able to read data,please check the connection");
+        logE("Error","Not able to read data,please check the connection");
     }
     adc_pressure=data[0] << 12 | data[1] << 4 | data[2] >> 4;
     adc_temp=data[3] << 12 | data[4] << 4 | data[5] >> 4;
