@@ -92,7 +92,7 @@ esp_err_t bmp280_init_ctrl(bmp280_params_t* params,i2c_config_t i2c_config);
 
 esp_err_t bmp280_init_default_params(bmp280_params_t *params);
 
-esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,void* reg);
+esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg);
 
 esp_err_t bmp280_resetting(i2c_config_t i2c_config);
 
@@ -100,6 +100,10 @@ esp_err_t bmp280_init_calibration(i2c_port_t i2c_num,bmp280_t *dev,i2c_config_t 
 
 esp_err_t bmp280_read_float(bmp280_t *dev,float *temperature,float *pressure,i2c_config_t i2c_config);
 
-esp_err_t read_data(size_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg);
+esp_err_t read_data(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg);
 
 esp_err_t read_data16(uint16_t *r,i2c_config_t i2c_config,uint8_t reg);
+
+esp_err_t select_register(uint8_t reg);
+
+esp_err_t bmp280_read_raw(bmp280_t *dev,int32_t *temperature,int32_t *pressure,i2c_config_t i2c_config);

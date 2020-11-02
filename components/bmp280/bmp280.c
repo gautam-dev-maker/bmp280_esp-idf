@@ -1,8 +1,76 @@
 #include "bmp280.h"
 
-esp_err_t bmp280_init_id(bmp280_t *dev,i2c_config_t i2c_config){
+esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg){
+    i2c_param_config(I2C_NUM_0,&i2c_config);
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, BMP280_ADDRESS_0 << 1|I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd,reg,1);
+    i2c_master_stop(cmd);
+    esp_err_t res = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+    return res;
+}
 
-    esp_err_t ret=read_data(1,&dev->id,i2c_config,BMP280_REG_ID);
+esp_err_t read_data16(uint16_t *r,i2c_config_t i2c_config,uint8_t reg){
+    uint8_t d[] = { 0, 0 };
+    i2c_param_config(I2C_NUM_0,&i2c_config);
+    // //i2c_driver_install(I2C_NUM_0,I2C_MODE_MASTER,SLV_RX_BUF_LEN,SLV_TX_BUF_LEN,INTR_ALLOC_FLAGS);
+    // i2c_cmd_handle_t cmd_handle=i2c_cmd_link_create();
+    // if (reg && 2)
+    //     {
+    //         i2c_master_start(cmd_handle);
+    //         i2c_master_write_byte(cmd_handle, BMP280_ADDRESS_0 << 1, true);
+    //         i2c_master_write(cmd_handle, &reg, 2, true);
+    //     }
+    // i2c_master_start(cmd_handle);
+    // i2c_master_write_byte(cmd_handle,( BMP280_ADDRESS_0 << 1 ) | I2C_MASTER_READ,true);
+    // i2c_master_read(cmd_handle,(uint8_t *)&d,2,I2C_MASTER_ACK);
+    // i2c_master_stop(cmd_handle);
+    // esp_err_t ret =i2c_master_cmd_begin(I2C_NUM_0,cmd_handle,1000/portTICK_PERIOD_MS);
+    // i2c_cmd_link_delete(cmd_handle);
+
+    esp_err_t ret=read_data(2,d,i2c_config,reg);
+    *r = d[0] | (d[1] << 8);
+
+    return ret;
+}
+
+esp_err_t read_data(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg){
+    i2c_param_config(I2C_NUM_0,&i2c_config);
+    i2c_cmd_handle_t cmd_handle;
+    select_register(reg);
+    cmd_handle=i2c_cmd_link_create();
+    i2c_master_start(cmd_handle);
+    i2c_master_write_byte(cmd_handle,( BMP280_ADDRESS_0 << 1 ) | I2C_MASTER_READ,true);
+    if (size>1)
+        i2c_master_read(cmd_handle,data,size,I2C_MASTER_ACK);
+    i2c_master_read_byte(cmd_handle,data+size-1,I2C_MASTER_NACK);
+    i2c_master_stop(cmd_handle);
+    esp_err_t ret =i2c_master_cmd_begin(I2C_NUM_0,cmd_handle,1000/portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd_handle);
+    return ret;
+}
+
+esp_err_t select_register(uint8_t reg){
+    i2c_cmd_handle_t cmd;
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (BMP280_ADDRESS_0 << 1) | I2C_MASTER_WRITE,true);
+    i2c_master_write_byte(cmd, reg, 1);
+    i2c_master_stop(cmd);
+    esp_err_t ret=i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+    return ret;
+}
+
+esp_err_t bmp280_init_id(bmp280_t *dev,i2c_config_t i2c_config){
+    uint8_t retry=0;
+    esp_err_t ret=ESP_FAIL;
+    while((retry++<5)&& (dev->id!=BMP280_CHIP_ID)){
+        ret=read_data(1,&dev->id,i2c_config,BMP280_REG_ID);
+        vTaskDelay(100/portTICK_PERIOD_MS);
+    }
     if(ret!=ESP_OK){
         logE("Error-Reading","Sensor not found");
     }
@@ -15,7 +83,7 @@ esp_err_t bmp280_init_id(bmp280_t *dev,i2c_config_t i2c_config){
 
 esp_err_t bmp280_init_config(bmp280_params_t *params,i2c_config_t i2c_config){
     uint8_t config =(params->standby << 5) | (params->filter << 2);
-    esp_err_t ret=write_data8(i2c_config,&config,1,(uint8_t*) BMP280_REG_CONFIG);
+    esp_err_t ret=write_data8(i2c_config,&config,1, BMP280_REG_CONFIG);
 
     if (params->mode == BMP280_MODE_FORCED){
         params->mode = BMP280_MODE_SLEEP;
@@ -26,7 +94,7 @@ esp_err_t bmp280_init_config(bmp280_params_t *params,i2c_config_t i2c_config){
 
 esp_err_t bmp280_init_ctrl(bmp280_params_t* params,i2c_config_t i2c_config){
     uint8_t ctrl = (params->oversampling_temperature << 5) | (params->oversampling_pressure << 2) | (params->mode);
-    esp_err_t ret=write_data8(i2c_config,&ctrl,1,(uint8_t*)BMP280_REG_CTRL);
+    esp_err_t ret=write_data8(i2c_config,&ctrl,1,BMP280_REG_CTRL);
     if(ret!=ESP_OK){
         logE("Control","Failed to control the sensor");
     }
@@ -44,22 +112,13 @@ esp_err_t bmp280_init_default_params(bmp280_params_t *params){
     return ESP_OK;
 }
 
-esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,void* reg){
-    i2c_param_config(I2C_NUM_0,&i2c_config);
-    //i2c_driver_install(I2C_NUM_0,I2C_MODE_MASTER,SLV_RX_BUF_LEN,SLV_TX_BUF_LEN,INTR_ALLOC_FLAGS);
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, BMP280_ADDRESS_0 << 1, true);
-    i2c_master_write(cmd, value, size, true);
-    i2c_master_stop(cmd);
-    esp_err_t res = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-    return res;
-}
+
+
+
 
 esp_err_t bmp280_resetting(i2c_config_t i2c_config){
     uint8_t value=BMP280_RESET_VALUE;
-    esp_err_t ret=write_data8(i2c_config,&value,1,(uint8_t*) BMP280_REG_RESET);
+    esp_err_t ret=write_data8(i2c_config,&value,1, BMP280_REG_RESET);
     if(ret!=ESP_OK){
         logE("Reset","Failed to reset sensor");
     }
@@ -85,46 +144,7 @@ esp_err_t bmp280_init_calibration(i2c_port_t i2c_num,bmp280_t *dev,i2c_config_t 
     return ret;
 }
 
-esp_err_t read_data16(uint16_t *r,i2c_config_t i2c_config,uint8_t reg){
-    uint8_t d[] = { 0, 0 };
-    i2c_param_config(I2C_NUM_0,&i2c_config);
-    //i2c_driver_install(I2C_NUM_0,I2C_MODE_MASTER,SLV_RX_BUF_LEN,SLV_TX_BUF_LEN,INTR_ALLOC_FLAGS);
-    i2c_cmd_handle_t cmd_handle=i2c_cmd_link_create();
-    if (reg && 2)
-        {
-            i2c_master_start(cmd_handle);
-            i2c_master_write_byte(cmd_handle, BMP280_ADDRESS_0 << 1, true);
-            i2c_master_write(cmd_handle, &reg, 2, true);
-        }
-    i2c_master_start(cmd_handle);
-    i2c_master_write_byte(cmd_handle,( BMP280_ADDRESS_0 << 1 ) | I2C_MASTER_READ,true);
-    i2c_master_read(cmd_handle,(uint8_t *)&d,2,I2C_MASTER_ACK);
-    i2c_master_stop(cmd_handle);
-    esp_err_t ret =i2c_master_cmd_begin(I2C_NUM_0,cmd_handle,1000/portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd_handle);
-    *r = d[0] | (d[1] << 8);
-    return ret;
-}
 
-//size=6
-esp_err_t read_data(size_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg){
-    i2c_param_config(I2C_NUM_0,&i2c_config);
-    //i2c_driver_install(I2C_NUM_0,I2C_MODE_MASTER,SLV_RX_BUF_LEN,SLV_TX_BUF_LEN,INTR_ALLOC_FLAGS);
-    i2c_cmd_handle_t cmd_handle=i2c_cmd_link_create();
-    // if (reg && size)
-    //     {
-    //         i2c_master_start(cmd_handle);
-    //         i2c_master_write_byte(cmd_handle, BMP280_ADDRESS_0 << 1, true);
-    //         i2c_master_write(cmd_handle, &reg, size, true);
-    //     }
-    i2c_master_start(cmd_handle);
-    i2c_master_write_byte(cmd_handle,( BMP280_ADDRESS_0 << 1 ) | I2C_MASTER_READ,true);
-    i2c_master_read(cmd_handle,data,size,I2C_MASTER_ACK);
-    i2c_master_stop(cmd_handle);
-    esp_err_t ret =i2c_master_cmd_begin(I2C_NUM_0,cmd_handle,1000/portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd_handle);
-    return ret;
-}
 
 int32_t compensate_temperature(bmp280_t *dev,int32_t adc_temp,int32_t *fine_temp){
     int32_t var1, var2;
@@ -158,6 +178,27 @@ int32_t compensate_pressure(bmp280_t *dev,int32_t adc_presure,int32_t *fine_temp
 
     p = ((p + var1 + var2) >> 8) + ((int64_t)dev->dig_P7 << 4);
     return p;
+}
+esp_err_t bmp280_read_raw(bmp280_t *dev,int32_t *temperature,int32_t *pressure,i2c_config_t i2c_config)
+{
+    size_t size=6;
+    uint8_t data[6]; 
+    int32_t adc_pressure;
+    int32_t adc_temp; 
+    if(read_data(size,&data[0],i2c_config, 0xf7)!=ESP_OK){
+        logE("Error","Not able to read data,please check the connection");
+    }
+    adc_pressure=data[0] << 12 | data[1] << 4 | data[2] >> 4;
+    adc_temp=data[3] << 12 | data[4] << 4 | data[5] >> 4;
+    //logD("ADC Temperature: %d",adc_temp);
+    //logD("ADC Pressure : %d",adc_pressure);
+
+    int32_t fine_temp;
+    *temperature=adc_temp;
+    *pressure=adc_pressure;
+
+    
+    return ESP_OK;
 }
 
 esp_err_t bmp280_read_fixed(bmp280_t *dev,int32_t *temperature,int32_t *pressure,i2c_config_t i2c_config){
