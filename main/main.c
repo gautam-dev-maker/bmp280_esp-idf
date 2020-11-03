@@ -28,8 +28,10 @@ void app_main()
 
             while (1)
             {
+                vTaskDelay(2 / portTICK_PERIOD_MS);
+
                 if (read_temp_and_pressure(dev, temperature, pressure) == ESP_OK)
-                    logD(TAG, "Pressure: %0.2f | Temperature: %0.2f", pressure, temperature);
+                    logD(TAG, "Pressure: %0.2f Pa | Temperature: %0.2f C", pressure, temperature);
                 else
                     logE(TAG, "%s", "BMP280 Read Failure!");
             }

@@ -4,13 +4,12 @@ static const char *TAG_BMP = "BMP280";
 
 void bmp280_init_default_params(bmp280_params_t *params)
 {
-
     params->mode = BMP280_MODE_NORMAL;
     params->filter = BMP280_FILTER_OFF;
     params->oversampling_pressure = BMP280_STANDARD;
     params->oversampling_temperature = BMP280_STANDARD;
     params->oversampling_humidity = BMP280_STANDARD;
-    params->standby = BMP280_STANDBY_250;
+    params->standby = BMP280_STANDBY_05;
 }
 
 esp_err_t bmp280_init_id(bmp280_t *dev)
