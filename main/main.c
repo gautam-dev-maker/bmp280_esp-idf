@@ -1,48 +1,68 @@
-#include "stdio.h"
-#include "stdlib.h"
-
-#include "sdkconfig.h"
-#include "esp_attr.h"
-#include "esp_err.h"
-
-#include "freertos/FreeRTOS.h"
+#include <stdio.h>
+#include "logger.h"
 #include "bmp280.h"
 
-static const char *TAG = "main";
+#define SDA_GPIO 21
+#define SCL_GPIO 22
 
-void app_main()
-{
-    logI(TAG, "%s", "Hello from ESP32!");
+#define SLV_RX_BUF_LEN 0
+#define SLV_TX_BUF_LEN 0
+#define INTR_ALLOC_FLAGS 0
 
-    if (i2c_master_init() == ESP_OK)
+#define MASTER_CLK_SPEED 400000
+
+
+
+
+void app_main(){
+    i2c_config_t i2c_config={
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num=SDA_GPIO,
+        .scl_io_num=SCL_GPIO,
+        .sda_pullup_en= GPIO_PULLUP_ENABLE,
+        .scl_pullup_en=GPIO_PULLUP_ENABLE,
+        .master.clk_speed= MASTER_CLK_SPEED
+    };
+
+    bmp280_params_t params;
+
+    bmp280_init_default_params(&params);
+
+    bmp280_t dev;
+    memset(&dev, 0, sizeof(bmp280_t));
+
+    i2c_port_t i2c_num=I2C_NUM_0;
+    i2c_driver_install(I2C_NUM_0,I2C_MODE_MASTER,SLV_RX_BUF_LEN,SLV_TX_BUF_LEN,INTR_ALLOC_FLAGS);
+
+    bmp280_init_id(&dev,i2c_config);
+
+    bmp280_resetting(i2c_config);
+
+    while (1)
     {
-        bmp280_params_t *params = malloc(sizeof(bmp280_params_t));
-        bmp280_t *dev = malloc(sizeof(bmp280_t));
+        uint8_t status;
+        if (!read_data(1,&status,i2c_config,BMP280_REG_STATUS) && (status & 1) == 0)
+            break;
+    }
+    
+    bmp280_init_calibration(i2c_num,&dev,i2c_config);
 
-        float *pressure = malloc(sizeof(float));
-        float *temperature = malloc(sizeof(float));
+    bmp280_init_config(&params,i2c_config);
 
-        if (enable_bmp280(params, dev) == ESP_OK)
+    bmp280_init_ctrl(&params,i2c_config);
+
+    float pressure, temperature;
+
+    while (1)
+    {
+        vTaskDelay(100/ portTICK_PERIOD_MS);
+        if (bmp280_read_float(&dev, &temperature, &pressure,i2c_config) != ESP_OK)
         {
-            logI(TAG, "%s", "BMP280 Initialization Success!");
-
-            while (1)
-            {
-                vTaskDelay(2 / portTICK_PERIOD_MS);
-
-                if (read_temp_and_pressure(dev, temperature, pressure) == ESP_OK)
-                    logD(TAG, "Pressure: %0.2f Pa | Temperature: %0.2f C", pressure, temperature);
-                else
-                    logE(TAG, "%s", "BMP280 Read Failure!");
-            }
+            printf("Temperature/pressure reading failed\n");
+            continue;
         }
-        else
-            logE(TAG, "%s", "BMP280 Initialization Failure!");
 
-        free(params);
-        free(dev);
-
-        free(pressure);
-        free(temperature);
+        printf("Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
+        printf("\n");
     }
 }
