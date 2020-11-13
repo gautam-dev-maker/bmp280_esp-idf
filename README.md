@@ -4,13 +4,14 @@ This repository is the component to read pressure and temperature from BMP280 us
 ## Table of Contents
 
 * [About The BMP280](#about-the-bmp280)
+* [File Structure](#file-structure)
 * [I2C Communication Protocol](#i2c-communication-protocol)
   * [Writing Data To Slave](#writing-data-to-slave)
   * [Reading Data From Slave](#reading-data-from-slave)
-* [File Structure](#file-structure)
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
+  * [How To Use In ESP-IDF Projects](#how-to-use-in-esp-idf-projects)
 * [Contributors](#contributors)
 * [Acknowledgements and Resources](#acknowledgements-and-resources)
 * [License](#license)
@@ -20,6 +21,25 @@ This repository is the component to read pressure and temperature from BMP280 us
 The BMP280 is an absolute barometric pressure sensor, which is especially feasible for mobile applications. Its small dimensions and its low power consumption allow for the implementation in battery-powered devices such as mobile phones, GPS modules or watches.
    
    ![](https://cdn-shop.adafruit.com/1200x900/2651-07.jpg)
+   ![](https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2018/08/ESP32-bme280_bb_f-768x669.png?resize=768%2C669&ssl=1)
+
+### File Structure
+    .
+    ├── components                    # contains the components used
+    │      ├──bmp280                  # Component to read from BMP280
+    │      │   ├── include            # header file of the bmp280 component
+    │      │   ├── CMakeLists.txt     # contains execution command for the command
+    │      │   └── bmp280.c           # Source file of bmp280 component
+    │      └──logger                  # logging component used to generate logs
+    │          ├── include            # header file of the logger component
+    │          ├── CMakeLists.txt     # contains execution Command for the component
+    │          └── logger.c           # Source file of Logger component
+    ├── example                       # Contains the example to use the component
+    │     ├── main                    # Main file to be executed
+    │     └── CMakeLists.txt          # contains commands to execute the example file
+    ├── References                    # Various resources reffered 
+    ├── LICENSE                       
+    └── README.md
    
 ## I2C Communication Protocol
 With I2C, data is transferred in messages. Messages are broken up into frames of data. Each message has an address frame that contains the binary address of the slave, and one or more data frames that contain the data being transmitted. The message also includes start and stop conditions, read/write bits, and ACK/NACK bits between each data frame:
@@ -69,7 +89,7 @@ The following describes how a command link for a “master write” is set up an
 * After the commands are transmitted, release the resources used by the command link by calling ```i2c_cmd_link_delete()```.
 
 ```c
-esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg){
+esp_err_t esp_err_t write_8bits_data_to_slave(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg){
     i2c_param_config(I2C_NUM_0,&i2c_config);
 
     // creating a command handle
@@ -117,7 +137,7 @@ Before reading data from the slave device, you must tell it which of its interna
 ![](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/_images/blockdiag-b03a38ff34e4be444769f59680b11809fdb47fa0.png)
 
 ```c
-esp_err_t read_data(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg){
+esp_err_t read_8bit_data_from_slave(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg){
     i2c_param_config(I2C_NUM_0,&i2c_config);
 
     //creating a command handle
@@ -150,24 +170,7 @@ esp_err_t read_data(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t r
 
 ```
 for more info on this API refer [this](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html#master-read)
-### File Structure
-    .
-    ├── Components              
-    │      ├──bmp280                  # Component to read from BMP280
-    │      │   ├── include            # header file of the bmp280 component
-    │      │   ├── CMakeLists.txt     # contains execution command for the command
-    │      │   └── bmp280.c           # Source file of bmp280 component
-    │      └──logger                  # logging component used to generate logs
-    │          ├── include            # header file of the logger component
-    │          ├── CMakeLists.txt     # contains execution Command for the component
-    │          └── logger.c           # Source file of Logger component
-    ├── example                       # Contains the example to use the component
-    │     ├── main.c                  # Main Source code to be executed
-    │     └── CMakeLists.txt          # contains commands to execute the example file
-    ├── References                    # Various resources reffered 
-    ├── Assets                        # contains screenshots of the result
-    ├── LICENSE                       
-    └── README.md
+
 
 ## Getting Started
 
@@ -179,7 +182,7 @@ Clone the project
 ```
 https://github.com/gautam-dev-maker/bmp280_esp_idf.git
 
-cd bmp280_esp_idf
+cd bmp280_esp_idf/example
 ```
 ## Usage
 
@@ -192,13 +195,47 @@ Flash
 idf.py -p (PORT) flash monitor
 
 ```
+## How To Use In ESP-IDF Projects
+```c
+
+#include <stdio.h>
+#include "bmp280.h"
+
+
+void app_main(){
+
+    // initialising the sensor
+    if(bmp280_init()==ESP_OK){              //verifying if the initialisation is successful
+        float pressure, temperature;
+        while (1)
+        {
+            vTaskDelay(100/ portTICK_PERIOD_MS);
+            if (bmp280_read_float( &temperature, &pressure) != ESP_OK)
+            {
+                printf("Temperature/pressure reading failed\n");
+                continue;
+            }
+
+            printf("Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
+            printf("\n");
+        }
+    }
+}
+
+```
+* ```bmp280_init()``` :- This function will initialise the sensor. It doesn't take any parameter. This function needs to be called first in app_main() before reading the values. It returns ```ESP_OK``` if initialisation is successfull or returns ```ESP_FAIL```
+* ```bmp280_read_float(float *temperature,float *pressure)``` :- This function will get the pressure and temperature from the sensor. It takes pointer to temperature and pressure variable as parameters. It returns ```ESP_OK``` if reading is successfull or returns ```ESP_FAIL```
+
 ## Contributors
 * [Laukik Hase](https://github.com/laukik-hase)
 * [Gautam Agrawal](https://github.com/gautam-dev-maker)
- 
+
+## Acknowledgements and Resources
+* Special Thanks to [Laukik Hase](https://github.com/laukik-hase) for mentoring
+* [I2C Protocol](https://www.robot-electronics.co.uk/i2c-tutorial)
   
 ## License
-The [License](https://github.com/gautam-dev-maker/Air-Mouse/blob/master/LICENSE) Used for this Project.
+The [License](https://github.com/gautam-dev-maker/bmp280_esp-idf/blob/main/LICENSE) Used for this Project.
   
   
   
