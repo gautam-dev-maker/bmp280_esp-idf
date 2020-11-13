@@ -233,6 +233,8 @@ void app_main(){
 ## Acknowledgements and Resources
 * Special Thanks to [Laukik Hase](https://github.com/laukik-hase) for mentoring
 * [I2C Protocol](https://www.robot-electronics.co.uk/i2c-tutorial)
+* [Adafruit Library for BMP280](references/Adafruit_BMP280.cpp)
+* [Data Sheet of BMP280](references/Bosch_BMP280_datasheet.pdf)
   
 ## License
 The [License](https://github.com/gautam-dev-maker/bmp280_esp-idf/blob/main/LICENSE) Used for this Project.
