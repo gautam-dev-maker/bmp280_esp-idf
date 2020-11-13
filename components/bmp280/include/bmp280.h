@@ -8,9 +8,15 @@
 #define BMP280_ADDRESS_0  0x76   //when SD0 pin is low
 #define BMP280_ADDRESS_1  0x77   //when SD0 pin is high
 
+#define SDA_GPIO 21
+#define SCL_GPIO 22
+#define I2C_PORT I2C_NUM_0
+
 #define SLV_RX_BUF_LEN 0
 #define SLV_TX_BUF_LEN 0
 #define INTR_ALLOC_FLAGS 0
+
+#define MASTER_CLK_SPEED 100000
 
 #define BMP280_CHIP_ID  0x58
 
@@ -84,6 +90,7 @@ typedef struct {
     BMP280_StandbyTime standby;
 } bmp280_params_t;
 
+bmp280_t dev;
 
 esp_err_t bmp280_init_config(bmp280_params_t *params,i2c_config_t i2c_config);
 
@@ -93,20 +100,18 @@ esp_err_t bmp280_init_ctrl(bmp280_params_t* params,i2c_config_t i2c_config);
 
 esp_err_t bmp280_init_default_params(bmp280_params_t *params);
 
-esp_err_t write_data8(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg);
+esp_err_t write_8bits_data_to_slave(i2c_config_t i2c_config,uint8_t *value,size_t size,uint8_t reg);
 
 esp_err_t bmp280_resetting(i2c_config_t i2c_config);
 
 esp_err_t bmp280_init_calibration(i2c_port_t i2c_num,bmp280_t *dev,i2c_config_t i2c_config);
 
-esp_err_t bmp280_read_float(bmp280_t *dev,float *temperature,float *pressure,i2c_config_t i2c_config);
+esp_err_t bmp280_read_float(float *temperature,float *pressure);
 
-esp_err_t read_data(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg);
+esp_err_t read_8bit_data_from_slave(uint8_t size,uint8_t* data,i2c_config_t i2c_config,uint8_t reg);
 
-esp_err_t read_data16(uint16_t *r,i2c_config_t i2c_config,uint8_t reg);
+esp_err_t read_16bit_data_from_slave(uint16_t *r,i2c_config_t i2c_config,uint8_t reg);
 
-esp_err_t select_register(uint8_t reg);
-
-esp_err_t bmp280_read_raw(bmp280_t *dev,int32_t *temperature,int32_t *pressure,i2c_config_t i2c_config);
+esp_err_t bmp280_init();
 
 esp_err_t bmp280_read_fixed(bmp280_t *dev,int32_t *temperature,int32_t *pressure,i2c_config_t i2c_config);
