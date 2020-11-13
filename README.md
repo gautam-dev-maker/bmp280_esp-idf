@@ -11,10 +11,6 @@ This repository is the component to read pressure and temperature from BMP280 us
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
-  * [Configuration](#configuration)
-* [Usage](#usage)
-* [Results and Demo](#results-and-demo)
-* [Troubleshooting](#troubleshooting)
 * [Contributors](#contributors)
 * [Acknowledgements and Resources](#acknowledgements-and-resources)
 * [License](#license)
@@ -195,36 +191,6 @@ Flash
 ```
 idf.py -p (PORT) flash monitor
 
-```
-### Configuration
-
-```
-idf.py menuconfig
-```
-* `Example Connection Configuration`
-  * `Bluetooth Name` - Set Bluetooth Name
-  
-* `MPU6050 Configuration
-  * `SDA Pin No.` - Set SDA Pin No.
-  * `CLK Pin No.` - Set CLK Pin No.
-* The default Pin configuration used to connect MPU_6050 with ESP32 in this project is shown ![](docs/results/Esp-32andmpu6050_pin_connection.png)  ![](docs/results/Air-Mouse_diagram.png)
-  
-## Results and Demo
-The use of Right and Left Capacitive touch pins has been demonstrated in the following videos
-
- [Right/left buttons](https://github.com/gautam-dev-maker/Air-Mouse/blob/master/docs/results/Right-Left%20click.mp4)
- 
- ## Troubleshooting
- While Configuring for the first time if Bluetooth is not working then ,go to terminal
- 
-```
-idf.py menuconfig
-```
-Then go to components/bluetooth and enable bluetooth
-Press ctrl+s to save the configuration
-then
-```
-idf.py build
 ```
 ## Contributors
 * [Laukik Hase](https://github.com/laukik-hase)
