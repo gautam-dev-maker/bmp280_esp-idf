@@ -11,7 +11,7 @@ logging library for ESP32.
   * [EXAMPLE](#example)
 * [DRAWBACK](#drawback)
 * [CONTRIBUTORS](#contributors)
-* [ACKNOWLEDGEMENT](#acknowledgements)
+* [REFERENCES](#references)
 * [LICENSE](#license)
 
 ## INTRODUCTION
@@ -69,3 +69,7 @@ ESP32 only supports 120 character at a time, so it can print only 120 characters
 
 ## CONTRIBUTORS
 * [Laukik Hase](https://github.com/laukik-hase)
+
+## REFERENCES
+* [](https://github.com/rxi/log.c)
+* [](https://github.com/JoaoLopesF/Esp-Idf-Improved-Logging)
