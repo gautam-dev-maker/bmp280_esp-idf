@@ -1,6 +1,18 @@
 # LOGGER
 logging library for ESP32.
 
+## Table of Contents
+
+* [INTRODUCTION](#introduction)
+* [REQUIREMENTS](#requirements)
+* [INSTALLATION](#installation)
+* [USAGE](#usage)
+  * [PARAMETERS](#parameters)
+* [DRAWBACK](#drawback)
+* [Contributors](#contributors)
+* [Acknowledgements and Resources](#acknowledgements-and-resources)
+* [License](#license)
+
 ## INTRODUCTION
 Debugging a microcontroller can be a tedious task and often requires special hardware. Many developers even prefer to use the good old ```printf()```. 
 However ESP32 has limited SRAM and storing debug strings is a waste of memory.
@@ -9,14 +21,6 @@ The logger provides solution to this problem. It:
 - supports printing format string from flash memory
 - suports different types of log levels
 - makes logging easy and efficient
-
-## FEATURES
-It provides 5 different log levels:- 
-* ```Error``` :- To report any error in 
-* Warning
-* Info
-* Debug
-* Verbose
 
 ## REQUIREMENTS
 * ESP-IDF v4.0 or later
@@ -60,4 +64,4 @@ void app_main(){
 }
 ```
 ## DRAWBACK
-This logger library supports only 512 character in a single log. So the only solution is to keep the log short.
+ESP32 only supports 120 character at a time, so it can print only 120 characters at a time. So the only solution is to keep the log short.
