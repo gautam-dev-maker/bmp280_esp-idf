@@ -8,6 +8,7 @@ logging library for ESP32.
 * [INSTALLATION](#installation)
 * [USAGE](#usage)
   * [PARAMETERS](#parameters)
+  * [EXAMPLE](#example)
 * [DRAWBACK](#drawback)
 * [Contributors](#contributors)
 * [Acknowledgements and Resources](#acknowledgements-and-resources)
