@@ -71,5 +71,5 @@ ESP32 only supports 120 character at a time, so it can print only 120 characters
 * [Laukik Hase](https://github.com/laukik-hase)
 
 ## REFERENCES
-* [](https://github.com/rxi/log.c)
-* [](https://github.com/JoaoLopesF/Esp-Idf-Improved-Logging)
+* [RXI](https://github.com/rxi/log.c)
+* [JoasoLopesF](https://github.com/JoaoLopesF/Esp-Idf-Improved-Logging)
