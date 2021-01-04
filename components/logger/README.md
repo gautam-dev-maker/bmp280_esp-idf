@@ -66,3 +66,6 @@ void app_main(){
 ```
 ## DRAWBACK
 ESP32 only supports 120 character at a time, so it can print only 120 characters at a time. So the only solution is to keep the log short.
+
+## CONTRIBUTORS
+* [Laukik Hase](https://github.com/laukik-hase)
