@@ -10,9 +10,9 @@ logging library for ESP32.
   * [PARAMETERS](#parameters)
   * [EXAMPLE](#example)
 * [DRAWBACK](#drawback)
-* [Contributors](#contributors)
-* [Acknowledgements and Resources](#acknowledgements-and-resources)
-* [License](#license)
+* [CONTRIBUTORS](#contributors)
+* [ACKNOWLEDGEMENT](#acknowledgements)
+* [LICENSE](#license)
 
 ## INTRODUCTION
 Debugging a microcontroller can be a tedious task and often requires special hardware. Many developers even prefer to use the good old ```printf()```. 
