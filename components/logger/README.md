@@ -59,3 +59,5 @@ void app_main(){
     logV("log-Verbose","Just some gibberish");     // write log with log level -> VERBOSE
 }
 ```
+## DRAWBACK
+This logger library supports only 512 character in a single log. So the only solution is to keep the log short.
