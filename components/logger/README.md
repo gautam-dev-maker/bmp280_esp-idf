@@ -9,7 +9,6 @@ logging library for ESP32.
 * [USAGE](#usage)
   * [PARAMETERS](#parameters)
   * [EXAMPLE](#example)
-* [DRAWBACK](#drawback)
 * [CONTRIBUTORS](#contributors)
 * [REFERENCES](#references)
 * [LICENSE](#license)
@@ -64,9 +63,6 @@ void app_main(){
     logV("log-Verbose","Just some gibberish");     // write log with log level -> VERBOSE
 }
 ```
-## DRAWBACK
-ESP32 only supports 120 character at a time, so it can print only 120 characters at a time. So the only solution is to keep the log short.
-
 ## CONTRIBUTORS
 * [Laukik Hase](https://github.com/laukik-hase)
 
